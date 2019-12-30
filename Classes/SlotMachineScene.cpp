@@ -17,9 +17,14 @@
 #include "LineValue.hpp"
 #include "Properties.h"
 
-#define WCP 1
+#include "BoardTest.hpp"
+
+#define WCP 0.25
 #define GWCP 0.1
+
+#define SCORE_DELAY 3.3
 #define SCALED true
+#define SHOULD_TEST true
 
 USING_NS_CC;
 
@@ -104,6 +109,10 @@ cocos2d::ui::Button *SlotMachine::addSpinButton() {
 }
 
 bool SlotMachine::init() {
+    if (SHOULD_TEST) {
+        BoardTest::test();
+    }
+    
     if ( !Scene::init() ) {
         return false;
     }
@@ -151,7 +160,21 @@ void SlotMachine::spin() {
         std::cout << "Score: " << lineValue->value << std::endl;
     }
     
-    //drawSymbols(board);
+    // Update the score.
+    Vector<FiniteTimeAction *> actions;
+    actions.pushBack(DelayTime::create(SCORE_DELAY));
+    int score;
+    if (lineValue == nullptr) {
+        score = 0;
+    } else {
+        score = lineValue->value;
+    }
+    actions.pushBack(CallFunc::create([&, score]()->void {
+        this->updateScore(score);
+    }));
+    auto updateScoreAction = Sequence::create(actions);
+    this->runAction(updateScoreAction);
+    
     for (int x = 0; x < Board::width; x++) {
         symbolManager->spinTo(
             5 + 2 * x,
@@ -164,7 +187,7 @@ void SlotMachine::spin() {
     
     drawLines(board);
     
-    //delete board;
+    delete board;
 }
 
 void SlotMachine::drawSymbols(Board *board) {
@@ -207,15 +230,15 @@ void SlotMachine::drawLines(Board *board) {
         Vector<FiniteTimeAction *> actions;
         if (symbolManager->hasSymbols()) {
             actions.pushBack(ToggleVisibility::create());
-            actions.pushBack(DelayTime::create(3.8));
+            actions.pushBack(DelayTime::create(SCORE_DELAY));
         }
         actions.pushBack(ToggleVisibility::create());
-        if (i >= linesToDraw.size() - 1) {
-            int score = board->score(&symbols, &lines)->value;
-            actions.pushBack(CallFunc::create([&, score]()->void {
-                this->updateScore(score);
-            }));
-        }
+//        if (i >= linesToDraw.size() - 1) {
+//            int score = board->score(&symbols, &lines)->value;
+//            actions.pushBack(CallFunc::create([&, score]()->void {
+//                this->updateScore(score);
+//            }));
+//        }
         auto delayIn = Sequence::create(actions);
         createdSprite->runAction(delayIn);
         

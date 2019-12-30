@@ -18,7 +18,7 @@
 using namespace std;
 
 Board::Board() {
-    randomize();
+    //randomize();
 }
 
 void Board::init(float wcp, float gwcp, Symbols *symbols, Lines *lines) {
