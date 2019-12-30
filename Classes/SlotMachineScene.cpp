@@ -17,8 +17,9 @@
 #include "LineValue.hpp"
 #include "Properties.h"
 
-#define WCP 0.25
+#define WCP 1
 #define GWCP 0.1
+#define SCALED true
 
 USING_NS_CC;
 
@@ -27,6 +28,18 @@ Scene* SlotMachine::createScene() {
 }
 
 static std::vector<Sprite *> drawnSprites;
+
+Sprite *createSprite(std::string filename, Vec2 pos) {
+    Sprite *sprite = Sprite::create(filename);
+    if (sprite == nullptr) {
+        Utils::problemLoading(filename);
+        return nullptr;
+    } else {
+        // position the sprite on the center of the screen
+        sprite->setPosition(pos);
+        return sprite;
+    }
+}
 
 Sprite *addSprite(SlotMachine *slotMachine, std::string filename, Vec2 pos) {
     Sprite *sprite = Sprite::create(filename);
@@ -42,14 +55,29 @@ Sprite *addSprite(SlotMachine *slotMachine, std::string filename, Vec2 pos) {
     }
 }
 
-Sprite *addBackground(SlotMachine *slotMachine) {
+Sprite *SlotMachine::addBackground() {
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
     
-    return addSprite(
-        slotMachine,
+    Sprite *back = addSprite(
+        this,
         "background.png",
         Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
+    if (SCALED) {
+        scaleBy = Vec2(visibleSize.width / back->getContentSize().width, (visibleSize.height + 2) / back->getContentSize().height);
+    } else {
+        scaleBy = Vec2(1, 1);
+    }
+    back->setScale(scaleBy.x, scaleBy.y);
+    
+    Sprite *front = addSprite(
+        this,
+        "background_front.png",
+        Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
+    front->setLocalZOrder(4);
+    front->setScale(scaleBy.x, scaleBy.y);
+
+    return back;
 }
 
 cocos2d::ui::Button *SlotMachine::addSpinButton() {
@@ -57,7 +85,7 @@ cocos2d::ui::Button *SlotMachine::addSpinButton() {
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
     
     auto spinButton = ui::Button::create("spin_button.png");
-    spinButton->setPosition(Vec2(visibleSize.width / 2 + origin.x + 85, visibleSize.height / 2 + origin.y - 74));
+    spinButton->setPosition(Vec2(visibleSize.width / 2 + origin.x + 85 * scaleBy.x, visibleSize.height / 2 + origin.y - 74 * scaleBy.y));
     spinButton->addTouchEventListener([&](Ref* sender, cocos2d::ui::Widget::TouchEventType type) {
         switch (type) {
             case cocos2d::ui::Widget::TouchEventType::ENDED:
@@ -67,6 +95,8 @@ cocos2d::ui::Button *SlotMachine::addSpinButton() {
                 break;
         }
     });
+    spinButton->setScale(scaleBy.y);
+    spinButton->setLocalZOrder(5);
     
     this->addChild(spinButton);
     
@@ -80,9 +110,20 @@ bool SlotMachine::init() {
     
     Utils::setRandom();
     
-    Sprite *background = addBackground(this);
+    Size visibleSize = Director::getInstance()->getVisibleSize();
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    
+    this->symbolManager = new SymbolSpriteManager(this, &symbols, visibleSize, origin);
+    
+    Sprite *background = addBackground();
 
     auto spinButton = addSpinButton();
+    
+    scoreLabel = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 9);
+    scoreLabel->setTextColor(Color4B::BLACK);
+    scoreLabel->setPosition(Vec2(visibleSize.width / 2 + origin.x + 23 * scaleBy.x, visibleSize.height / 2 + origin.y - 73 * scaleBy.y));
+    this->addChild(scoreLabel);
+    scoreLabel->setLocalZOrder(6);
     
     if (background == nullptr || spinButton == nullptr) {
         return false;
@@ -110,10 +151,20 @@ void SlotMachine::spin() {
         std::cout << "Score: " << lineValue->value << std::endl;
     }
     
-    drawSymbols(board);
+    //drawSymbols(board);
+    for (int x = 0; x < Board::width; x++) {
+        symbolManager->spinTo(
+            5 + 2 * x,
+            x,
+            board->get(&symbols, x, 0),
+            board->get(&symbols, x, 1),
+            board->get(&symbols, x, 2),
+            &symbols);
+    }
+    
     drawLines(board);
     
-    delete board;
+    //delete board;
 }
 
 void SlotMachine::drawSymbols(Board *board) {
@@ -126,7 +177,10 @@ void SlotMachine::drawSymbols(Board *board) {
             float startY = visibleSize.height / 2 + origin.y + 38;
             Vec2 pos = Vec2(startX + 40 * x, startY - 31 * y);
             
-            drawnSprites.push_back(addSprite(this, board->get(&symbols, x, y)->image, pos));
+            Sprite *addedSprite = addSprite(this, board->get(&symbols, x, y)->image, pos);
+            addedSprite->setLocalZOrder(3);
+            
+            drawnSprites.push_back(addedSprite);
         }
     }
 }
@@ -146,10 +200,31 @@ void SlotMachine::drawLines(Board *board) {
     for (int i = 0; i < linesToDraw.size(); i++) {
         Line *line = linesToDraw.at(i);
         
-        Sprite *addedSprite = addSprite(this, line->image, Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-        addedSprite->setLocalZOrder(5);
-        drawnSprites.push_back(addedSprite);
+        Sprite *createdSprite = addSprite(this, line->image, Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
+        createdSprite->setScale(scaleBy.x, scaleBy.y);
+        createdSprite->setLocalZOrder(5);
+        
+        Vector<FiniteTimeAction *> actions;
+        if (symbolManager->hasSymbols()) {
+            actions.pushBack(ToggleVisibility::create());
+            actions.pushBack(DelayTime::create(3.8));
+        }
+        actions.pushBack(ToggleVisibility::create());
+        if (i >= linesToDraw.size() - 1) {
+            int score = board->score(&symbols, &lines)->value;
+            actions.pushBack(CallFunc::create([&, score]()->void {
+                this->updateScore(score);
+            }));
+        }
+        auto delayIn = Sequence::create(actions);
+        createdSprite->runAction(delayIn);
+        
+        drawnSprites.push_back(createdSprite);
     }
+}
+
+void SlotMachine::updateScore(int score) {
+    scoreLabel->setString(std::to_string(score));
 }
 
 

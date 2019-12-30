@@ -12,6 +12,7 @@
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
 
+#include "SymbolSpriteManager.hpp"
 #include "Lines.hpp"
 #include "Symbols.hpp"
 #include "Board.hpp"
@@ -25,6 +26,7 @@ public:
     
     Lines lines = Lines();
     Symbols symbols = Symbols();
+    Vec2 scaleBy;
     
     void spin();
     
@@ -35,9 +37,15 @@ public:
     CREATE_FUNC(SlotMachine);
 
 private:
+    SymbolSpriteManager *symbolManager;
+    Label *scoreLabel;
+    
     cocos2d::ui::Button *addSpinButton();
     void drawSymbols(Board *board);
     void drawLines(Board *board);
+    void updateScore(int score);
+    
+    cocos2d::Sprite *addBackground();
 };
 
 

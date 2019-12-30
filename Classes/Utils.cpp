@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include "Utils.hpp"
+#include "ui/CocosGUI.h"
 #include <ctime>
 
 // Print useful error message instead of segfaulting when files are not there.
@@ -21,4 +22,17 @@ void Utils::setRandom() {
 
 int Utils::random(int low, int high) {
     return rand() % (high - low + 1) + low;
+}
+
+Sprite *Utils::addSprite(Scene *scene, std::string filename, Vec2 pos) {
+    Sprite *sprite = Sprite::create(filename);
+    if (sprite == nullptr) {
+        Utils::problemLoading(filename);
+        return nullptr;
+    } else {
+        sprite->setPosition(pos);
+        
+        scene->addChild(sprite, 0);
+        return sprite;
+    }
 }

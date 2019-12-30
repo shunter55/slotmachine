@@ -22,7 +22,7 @@ Board::Board() {
 }
 
 void Board::init(float wcp, float gwcp, Symbols *symbols, Lines *lines) {
-    int calculateBoard = Utils::random(0, 100);
+    int calculateBoard = Utils::random(0, 99);
     if (calculateBoard < wcp * 100) {
         if (calculateBoard < gwcp * 100) {
             // Should win over $25.
@@ -74,7 +74,7 @@ void Board::valueInRange(int low, int high, Symbols *symbols, Lines *lines) {
         int minOcc = symbol->minOccurancesWithValueAbove(low);
         if (maxOcc < minOcc) {
             // Symbol cannot make the requested range. TODO: Don't just randomly regenerate.
-            std::cout << "ERROR: Make sure all symbols can make the range." << std::endl;
+            std::cout << "WARN: symbol: " << symbol->number << " - Make sure all symbols can make the range(" << low << ", " << high << ")" << std::endl;
             valueInRange(low, high, symbols, lines);
             return;
         }
