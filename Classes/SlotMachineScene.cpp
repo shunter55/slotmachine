@@ -247,12 +247,6 @@ void SlotMachine::drawLines(Board *board) {
             actions.pushBack(DelayTime::create(SCORE_DELAY));
         }
         actions.pushBack(ToggleVisibility::create());
-//        if (i >= linesToDraw.size() - 1) {
-//            int score = board->score(&symbols, &lines)->value;
-//            actions.pushBack(CallFunc::create([&, score]()->void {
-//                this->updateScore(score);
-//            }));
-//        }
         auto delayIn = Sequence::create(actions);
         createdSprite->runAction(delayIn);
         

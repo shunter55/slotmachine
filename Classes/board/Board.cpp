@@ -174,25 +174,6 @@ LineValue *Board::score(Symbols *symbols, Lines *lines) {
     return maxLineValue;
 }
 
-void Board::demoteLine(LineValue *lineValue, int minValue, int maxValue, Symbols *symbols) {
-    Symbol *symbol = get(symbols, 0, lineValue->line->get(0));
-    int occurances = symbol->getOccurances(lineValue->value);
-    
-    if (occurances > symbol->minOccurance()) {
-        // Can we reduce number to get below maxValue and above minValue?
-        while (occurances > symbol->minOccurance() && symbol->getValue(occurances) > maxValue) {
-            occurances--;
-        }
-        if (symbol->getValue(occurances) >= minValue && symbol->getValue(occurances) <= maxValue) {
-            // Set Symbol occurances.
-            return;
-        }
-    }
-    
-    // Use a different Symbol.
-    
-}
-
 string Board::toString() {
     std::stringstream str;
     

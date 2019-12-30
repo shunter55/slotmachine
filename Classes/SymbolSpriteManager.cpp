@@ -36,6 +36,7 @@ bool SymbolSpriteManager::hasSymbols() {
     return wheels[0].size() > 0;
 }
 
+// This would be better with a callback.
 void SymbolSpriteManager::spinTo(int numToSpin, int wheelIdx, Symbol *top, Symbol *mid, Symbol *bot, Symbols *symbols) {
     if (wheels[wheelIdx].size() <= 0) {
         addSymbolOnScreen(wheelIdx, 0, top);
@@ -48,45 +49,9 @@ void SymbolSpriteManager::spinTo(int numToSpin, int wheelIdx, Symbol *top, Symbo
         toSymbols[wheelIdx][2] = bot;
         update(wheelIdx);
     }
-    
-//    auto fn = [&, wheelIdx]()->void {
-//        spinTo(numToSpin - 1,
-//               wheelIdx,
-//               symbols->symbols[Utils::random(0, Symbols::NUM_SYMBOLS)],
-//               symbols->symbols[Utils::random(0, Symbols::NUM_SYMBOLS)],
-//               symbols->symbols[Utils::random(0, Symbols::NUM_SYMBOLS)],
-//               symbols);
-//    };
-//    auto lastFn = [&, wheelIdx]()->void {
-//        spinTo(numToSpin - 1,
-//               wheelIdx,
-//               top,
-//               mid,
-//               bot,
-//               symbols);
-//    };
-//
-//    slideTo(
-//        wheelIdx,
-//        symbols->symbols[Utils::random(0, Symbols::NUM_SYMBOLS)],
-//        symbols->symbols[Utils::random(0, Symbols::NUM_SYMBOLS)],
-//        symbols->symbols[Utils::random(0, Symbols::NUM_SYMBOLS)],
-//        [&, fn, lastFn, numToSpin]()->void {
-//            if (numToSpin <= 0) {
-//                lastFn();
-//            } else {
-//                fn();
-//            }
-//        });
-    
-//    slideTo(wheelIdx, top, mid, bot, [=]()->void {
-//
-//    });
-//
 }
 
 void SymbolSpriteManager::slideTo(int wheelIdx, Symbol *top, Symbol *mid, Symbol *bot) {
-    float scaleX = ((SlotMachine *)scene)->scaleBy.x;
     float scaleY = ((SlotMachine *)scene)->scaleBy.y;
     Symbol *arr[3] = {top, mid, bot};
     

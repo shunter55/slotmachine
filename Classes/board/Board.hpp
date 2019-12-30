@@ -36,7 +36,6 @@ private:
     int board[5][3];
     
     int checkLine(Symbols *symbols, Line *line);
-    void demoteLine(LineValue *lineValue, int minValue, int maxValue, Symbols *symbols);
     void fillBoard(Symbols *symbols, Lines *lines);
 };
 
