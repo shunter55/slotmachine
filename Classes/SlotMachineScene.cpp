@@ -117,6 +117,8 @@ bool SlotMachine::init() {
         return false;
     }
     
+    canSpin = true;
+    
     Utils::setRandom();
     
     Size visibleSize = Director::getInstance()->getVisibleSize();
@@ -128,7 +130,7 @@ bool SlotMachine::init() {
 
     auto spinButton = addSpinButton();
     
-    scoreLabel = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 9);
+    scoreLabel = Label::createWithTTF("0", "fonts/Marker Felt.ttf", 8 * scaleBy.y);
     scoreLabel->setTextColor(Color4B::BLACK);
     scoreLabel->setPosition(Vec2(visibleSize.width / 2 + origin.x + 23 * scaleBy.x, visibleSize.height / 2 + origin.y - 73 * scaleBy.y));
     this->addChild(scoreLabel);
@@ -138,12 +140,23 @@ bool SlotMachine::init() {
         return false;
     }
 
-    spin();
+    // Initialize a random 1st board.
+    for (int x = 0; x < Board::width; x++) {
+        for (int y = 0; y < Board::height; y++) {
+            symbolManager->addSymbolOnScreen(x, y, symbols.symbols[Utils::random(0, symbols.NUM_SYMBOLS - 1)]);
+        }
+    }
     
     return true;
 }
 
 void SlotMachine::spin() {
+    
+    if (!canSpin) {
+        return;
+    }
+    
+    canSpin = false;
     
     for (int i = 0; i < drawnSprites.size(); i++) {
         drawnSprites.at(i)->removeFromParentAndCleanup(true);
@@ -171,6 +184,7 @@ void SlotMachine::spin() {
     }
     actions.pushBack(CallFunc::create([&, score]()->void {
         this->updateScore(score);
+        this->canSpin = true;
     }));
     auto updateScoreAction = Sequence::create(actions);
     this->runAction(updateScoreAction);

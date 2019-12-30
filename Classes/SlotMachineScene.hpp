@@ -39,6 +39,7 @@ public:
 private:
     SymbolSpriteManager *symbolManager;
     Label *scoreLabel;
+    bool canSpin;
     
     cocos2d::ui::Button *addSpinButton();
     void drawSymbols(Board *board);

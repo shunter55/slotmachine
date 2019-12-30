@@ -19,6 +19,7 @@ public:
     SymbolSpriteManager(Scene *scene, Symbols *symbols, Size visibleSize, Vec2 origin);
     void spinTo(int numToSpin, int wheelIdx, Symbol *top, Symbol *mid, Symbol *bot, Symbols *symbols);
     void update(int wheelIdx);
+    void addSymbolOnScreen(int wheelIdx, int idx, Symbol *symbol);
     bool hasSymbols();
     
 private:
@@ -30,7 +31,6 @@ private:
     int spins[5];
     Symbol *toSymbols[5][3];
     std::vector<Sprite *> wheels[5];
-    void addSymbolOnScreen(int wheelIdx, int idx, Symbol *symbol);
     Sprite *addSymbolOffScreen(int wheelIdx, int idx, Symbol *symbol);
     void slideTo(int wheelIdx, Symbol *top, Symbol *mid, Symbol *bot);
     Vec2 getPos(int wheelIdx, int idx);
